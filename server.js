@@ -62,19 +62,22 @@ function getSqliteDriver() {
   return sqlite3;
 }
 
-function connectDatabase() {
+async function connectDatabase() {
   if (DB_CLIENT === 'postgres') {
     pgClient = new Client({
       connectionString: process.env.DATABASE_URL,
       ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
     });
 
-    pgClient.connect()
-      .then(() => console.log('Connected to PostgreSQL database'))
-      .catch((err) => console.error('PostgreSQL connection error:', err.message));
-
-    db = pgClient;
-    return;
+    try {
+      await pgClient.connect();
+      db = pgClient;
+      console.log('Connected to PostgreSQL database');
+      return;
+    } catch (err) {
+      console.error('PostgreSQL connection error:', err.message);
+      throw err;
+    }
   }
 
   const SqliteDriver = getSqliteDriver();
@@ -84,7 +87,9 @@ function connectDatabase() {
   });
 }
 
-connectDatabase();
+connectDatabase().catch((err) => {
+  console.error('Initial database connection failed:', err.message);
+});
 
 function run(sql, params = []) {
   if (DB_CLIENT === 'postgres') {
@@ -370,6 +375,10 @@ async function resetSqliteSequence(tableName) {
 
 async function initializeDatabase() {
   if (dbReady) return;
+
+  if (DB_CLIENT === 'postgres' && (!pgClient || !pgClient._connected)) {
+    await connectDatabase();
+  }
 
   const tableDefinitions = TABLE_SQL[DB_CLIENT] || TABLE_SQL.sqlite;
   for (const statement of tableDefinitions) {
