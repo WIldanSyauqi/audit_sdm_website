@@ -12,3 +12,9 @@ services:
         value: 3000
       - key: JWT_SECRET
         generateValue: true
+      - key: DB_CLIENT
+        value: postgres
+      - key: PUBLIC_DEMO
+        value: true
+      - key: DATABASE_URL
+        sync: false
