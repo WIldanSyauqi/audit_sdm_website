@@ -873,4 +873,8 @@ if (require.main === module) {
   });
 }
 
-module.exports = { app, startServer, db, initializeDatabase };
+module.exports = app;
+module.exports.app = app;
+module.exports.startServer = startServer;
+module.exports.db = db;
+module.exports.initializeDatabase = initializeDatabase;

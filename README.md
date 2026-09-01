@@ -1,36 +1,47 @@
-# Audit SDM Portfolio Project
+# Audit SDM Website
 
-A polished HR audit portal built as a presentation-ready portfolio app for showcasing system design, CRUD functionality, role-based access, and deployment readiness.
+A portfolio-ready HR audit management system focused on employee administration, audit tracking, findings review, role-based permissions, and deployment-ready backend services.
+
+## Project overview
+
+This application simulates an internal HR audit dashboard for managing compliance checks, employee records, audit findings, and report generation. It is designed to showcase full-stack workflow logic, role segmentation, CRUD operations, and clean frontend presentation for portfolio or demo purposes.
 
 ## Features
 
-- Complete audit CRUD form with title, department, status, and score
-- Employee management form with name, email, role, and password
-- Frontend search and role-based filtering for audits and employees
-- Login and access flow with admin, auditor, manager, and viewer roles
-- REST API backend with SQLite default and PostgreSQL-ready configuration
-- Render, Vercel, and Railway deployment configs included
-- Clean UI tailored for portfolio presentation and live demo use
+- Audit lifecycle management with title, department, score, and status tracking
+- Employee management with create, read, update, delete, reset password, and safe role protections
+- Database-driven employee ID reindexing after deletion to keep IDs consistent
+- Role-based access for admin, auditor, manager, and viewer
+- Audit logs, CSV export, password strength validation, and reporting views
+- SQLite-first database with PostgreSQL-ready compatibility
+- Vercel, Render, and Railway deployment templates included
 
-## Run locally
+## Local run
 
 ```bash
 npm install
 npm start
 ```
 
-Open http://localhost:3000
+Open: http://localhost:3000
 
 ## Default login
 
 - Email: admin@audit.local
 - Password: admin123
 
-## Deployment
+## Production status
 
-- Render: use the included [render.yaml](render.yaml)
-- Vercel: use the included [vercel.json](vercel.json)
-- Railway: use the included [railway.json](railway.json)
+The project has been deployed to Vercel successfully, but the live deployment is currently protected by Vercel authentication. The app is reachable through the Vercel dashboard and can be opened by authenticated project members until public access is enabled.
+
+Production URL:
+- https://auditsdmwebsite-oakrcv1b4-hotaru-id.vercel.app
+
+## Deployment configs
+
+- Vercel: [vercel.json](vercel.json)
+- Render: [render.yaml](render.yaml)
+- Railway: [railway.json](railway.json)
 
 ## Environment variables
 
@@ -44,4 +55,4 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/audit_sdm
 
 ## Portfolio notes
 
-This version is optimized for presentations: a more refined interface, realistic workflow logic, and clear evidence of CRUD and dashboard operations without requiring additional setup beyond the local Node runtime.
+This project is optimized for a professional portfolio showcase: it demonstrates practical backend logic, real database behavior, role permissions, secure admin guards, and deployment-ready architecture in a single application.
