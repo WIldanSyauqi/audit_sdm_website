@@ -56,6 +56,21 @@ The app keeps normal read-only viewing and login flows available, while blocking
 
 This is the recommended configuration for public portfolio deployment because it keeps the app accessible without exposing dangerous admin operations.
 
+## Final portfolio submission summary
+
+This project is a portfolio-ready HR audit management platform designed to demonstrate end-to-end application development, data handling, role-based access control, and deployment readiness. The application focuses on employee administration, audit operation workflows, findings management, reporting, and a polished dashboard interface tailored for an HR or internal audit presentation.
+
+The system includes:
+
+- a full audit checklist and findings flow
+- employee management with validation and user role logic
+- secure authentication and JWT-based session handling
+- admin-protected operations to prevent destructive actions in public demo mode
+- SQLite-first persistence with PostgreSQL compatibility
+- Vercel deployment support and environment-based configuration
+
+This project is suitable for a portfolio submission because it demonstrates not only frontend design quality but also real backend logic, security guardrails, operational thinking, and production deployment awareness.
+
 ## Deployment configs
 
 - Vercel: [vercel.json](vercel.json)

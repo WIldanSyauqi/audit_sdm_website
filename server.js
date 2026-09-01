@@ -4,17 +4,17 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const sqlite3 = require('sqlite3').verbose();
-const { Client } = require('pg');
 const path = require('path');
-
 const fs = require('fs');
+
+let sqlite3;
+const { Client } = require('pg');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 const DB_PATH = path.join(__dirname, 'database.sqlite');
-const DB_CLIENT = (process.env.DB_CLIENT || 'sqlite').toLowerCase();
+const DB_CLIENT = (process.env.DB_CLIENT || (process.env.DATABASE_URL ? 'postgres' : 'sqlite')).toLowerCase();
 const PUBLIC_DEMO = process.env.PUBLIC_DEMO === 'true';
 const ADMIN_EMAIL = 'admin@audit.local';
 const ADMIN_PASSWORD = 'admin123';
@@ -55,6 +55,13 @@ let db;
 let pgClient = null;
 let dbReady = false;
 
+function getSqliteDriver() {
+  if (!sqlite3) {
+    sqlite3 = require('sqlite3').verbose();
+  }
+  return sqlite3;
+}
+
 function connectDatabase() {
   if (DB_CLIENT === 'postgres') {
     pgClient = new Client({
@@ -70,7 +77,8 @@ function connectDatabase() {
     return;
   }
 
-  db = new sqlite3.Database(DB_PATH, (err) => {
+  const SqliteDriver = getSqliteDriver();
+  db = new SqliteDriver.Database(DB_PATH, (err) => {
     if (err) console.error('Database connection error:', err.message);
     else console.log('Connected to SQLite database');
   });
@@ -104,6 +112,7 @@ function all(sql, params = []) {
     return pgClient.query(sql, params).then((result) => result.rows);
   }
 
+  const SqliteDriver = getSqliteDriver();
   return new Promise((resolve, reject) => {
     db.all(sql, params, (err, rows) => {
       if (err) {
@@ -121,6 +130,7 @@ function get(sql, params = []) {
     return pgClient.query(sql, params).then((result) => result.rows[0] || null);
   }
 
+  const SqliteDriver = getSqliteDriver();
   return new Promise((resolve, reject) => {
     db.get(sql, params, (err, row) => {
       if (err) {
@@ -888,4 +898,5 @@ module.exports = app;
 module.exports.app = app;
 module.exports.startServer = startServer;
 module.exports.db = db;
+module.exports.DB_CLIENT = DB_CLIENT;
 module.exports.initializeDatabase = initializeDatabase;

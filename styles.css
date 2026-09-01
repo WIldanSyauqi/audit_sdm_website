@@ -124,6 +124,23 @@ textarea {
   min-height: 100vh;
 }
 
+.demo-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  padding: 8px 16px;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  box-shadow: 0 10px 30px rgba(79, 70, 229, 0.2);
+}
+
 .sidebar {
   width: 260px;
   background: rgba(255, 255, 255, 0.72);

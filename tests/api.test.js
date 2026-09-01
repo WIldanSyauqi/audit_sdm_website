@@ -418,3 +418,15 @@ test('PUBLIC_DEMO blocks destructive admin endpoints', async () => {
   await request(resetApp).get('/api/health');
 });
 
+test('DB_CLIENT prefers PostgreSQL when DATABASE_URL is available', async () => {
+  process.env.DATABASE_URL = 'postgresql://postgres:postgres@localhost:5432/audit_sdm';
+  delete require.cache[require.resolve('../server.js')];
+  const serverModule = require('../server.js');
+
+  assert.equal(serverModule.DB_CLIENT, 'postgres');
+
+  delete process.env.DATABASE_URL;
+  delete require.cache[require.resolve('../server.js')];
+  require('../server.js');
+});
+
