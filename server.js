@@ -15,6 +15,7 @@ const PORT = Number(process.env.PORT) || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 const DB_PATH = path.join(__dirname, 'database.sqlite');
 const DB_CLIENT = (process.env.DB_CLIENT || 'sqlite').toLowerCase();
+const PUBLIC_DEMO = process.env.PUBLIC_DEMO === 'true';
 const ADMIN_EMAIL = 'admin@audit.local';
 const ADMIN_PASSWORD = 'admin123';
 const DEFAULT_ROLE_USERS = [
@@ -28,6 +29,16 @@ const BACKUP_DIR = path.join(__dirname, 'backups');
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
+
+app.use((req, res, next) => {
+  const isProtectedAdminRoute = req.path.startsWith('/api/admin/') || req.path.startsWith('/api/backup/restore') || req.path.startsWith('/api/users/') && req.method === 'DELETE' || req.path.startsWith('/api/users/') && req.method === 'POST' && req.path.includes('/reset-password');
+
+  if (PUBLIC_DEMO && isProtectedAdminRoute) {
+    return res.status(403).json({ error: 'Demo mode: this action is disabled.' });
+  }
+
+  return next();
+});
 
 app.use(async (req, res, next) => {
   if (!dbReady) {

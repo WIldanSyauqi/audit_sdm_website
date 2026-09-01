@@ -387,3 +387,34 @@ test('GET /api/users/:id returns employee detail and backup restore endpoint is 
   assert.match(restoreWithoutConfirm.body.error, /confirm/i);
 });
 
+test('PUBLIC_DEMO blocks destructive admin endpoints', async () => {
+  process.env.PUBLIC_DEMO = 'true';
+  delete require.cache[require.resolve('../server.js')];
+  const { app: demoApp } = require('../server.js');
+
+  const loginRes = await request(demoApp)
+    .post('/api/auth/login')
+    .send({ email: 'admin@audit.local', password: 'admin123' });
+
+  assert.equal(loginRes.status, 200);
+
+  const resetRes = await request(demoApp)
+    .post('/api/admin/reset-database')
+    .set('Authorization', `Bearer ${loginRes.body.token}`);
+
+  assert.equal(resetRes.status, 403);
+  assert.match(resetRes.body.error, /demo mode/i);
+
+  const deleteRes = await request(demoApp)
+    .delete('/api/users/2')
+    .set('Authorization', `Bearer ${loginRes.body.token}`);
+
+  assert.equal(deleteRes.status, 403);
+  assert.match(deleteRes.body.error, /demo mode/i);
+
+  delete process.env.PUBLIC_DEMO;
+  delete require.cache[require.resolve('../server.js')];
+  const { app: resetApp } = require('../server.js');
+  await request(resetApp).get('/api/health');
+});
+
