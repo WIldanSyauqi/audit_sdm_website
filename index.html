@@ -1,0 +1,985 @@
+﻿<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HR Audit Pro — Audit SDM</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="loginOverlay" class="login-overlay">
+      <div class="login-box">
+        <div class="login-brand">
+          <div class="brand-badge">
+            <span class="brand-mark-large">HR</span>
+            HR Audit Pro
+          </div>
+          <div>
+            <h2>Audit SDM yang lebih rapi, aman, dan terukur.</h2>
+            <p>Kelola checklist, temuan, laporan, dan data karyawan dari satu platform yang fokus pada akurasi dan efisiensi.</p>
+          </div>
+          <div class="login-brand-card">
+            <strong>Access roles</strong>
+            <div class="pill-row" style="margin-top: 12px; margin-bottom: 0;">
+              <span class="pill">Admin</span>
+              <span class="pill">Auditor</span>
+              <span class="pill">Manager</span>
+              <span class="pill">Viewer</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="login-form">
+          <div class="login-form-header">
+            <h3>Masuk ke Dashboard</h3>
+            <p>Gunakan akun role yang tersedia.</p>
+          </div>
+
+          <div class="pill-row compact">
+            <span class="pill">Admin</span>
+            <span class="pill">Auditor</span>
+            <span class="pill">Manager</span>
+            <span class="pill">Viewer</span>
+          </div>
+
+          <div class="login-grid">
+            <div class="field-group">
+              <label for="loginEmail">Email</label>
+              <input id="loginEmail" type="email" value="admin@audit.local" placeholder="Email" />
+            </div>
+            <div class="field-group">
+              <label for="loginPassword">Password</label>
+              <input id="loginPassword" type="password" value="admin123" placeholder="Password" />
+            </div>
+            <div class="login-actions">
+              <button class="btn primary" onclick="login()">Masuk ke Sistem</button>
+            </div>
+          </div>
+
+          <div class="login-meta">admin@audit.local / admin123</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="app">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand">
+          <span class="brand-mark">HR</span>
+          <span>HR Audit Pro</span>
+        </div>
+
+        <nav class="nav-group">
+          <span class="nav-label">Menu Utama</span>
+          <button class="nav-btn active" data-page="dashboard">Dashboard</button>
+          <button class="nav-btn menu-checklist" data-page="checklist">Checklist Audit</button>
+          <button class="nav-btn menu-findings" data-page="findings">Temuan Audit</button>
+          <button class="nav-btn menu-reports" data-page="reports">Laporan</button>
+          <button class="nav-btn menu-employees" data-page="employees">Data Karyawan</button>
+
+          <span class="nav-label">Sistem</span>
+          <button class="nav-btn menu-settings" data-page="settings">Pengaturan</button>
+        </nav>
+
+        <div class="user-card">
+          <strong id="userName">Administrator</strong>
+          <small id="userEmail">admin@audit.local</small>
+          <div style="margin-top: 10px;">
+            <button class="btn ghost" style="width:100%;" onclick="logout()">Logout</button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="menu-toggle" id="menuToggle">☰</button>
+            <h1 class="page-title" id="pageTitle">Dashboard</h1>
+          </div>
+          <div class="topbar-actions">
+            <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">☀</button>
+            <div class="user-mini"><span class="dot"></span><span id="userMiniLabel">ADMIN</span></div>
+          </div>
+        </header>
+
+        <div class="content">
+          <section class="page active" id="dashboard">
+            <div class="hero">
+              <div>
+                <small>ATLAS HR OPERATIONS</small>
+                <h2>Workforce assurance platform for operational resilience.</h2>
+                <p>Pantau kepatuhan SDM, kualitas audit, dan inisiatif perbaikan dari satu command center yang dirancang untuk keputusan manajemen tingkat eksekutif.</p>
+              </div>
+              <div class="quick-actions">
+                <button class="btn btn-hero-primary" onclick="goToPage('checklist')">
+                  <span>⚡ Mulai Audit</span>
+                  <span class="btn-arrow">→</span>
+                </button>
+                <button class="btn btn-hero-secondary" onclick="goToPage('reports')">
+                  <span>📊 Lihat Laporan</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="stats-grid">
+              <div class="stat-card brand-stat">
+                <div class="stat-head">
+                  <span class="stat-label">Kepatuhan</span>
+                  <span class="kpi-pill success" id="dashboardComplianceStatus">Healthy</span>
+                </div>
+                <div class="stat-value">
+                  <strong id="dashboardComplianceValue">78%</strong>
+                  <span class="trend-chip" id="dashboardComplianceTrend">+8% MoM</span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-head">
+                  <span class="stat-label">Audit aktif</span>
+                  <span class="kpi-pill" id="dashboardActiveAuditBadge">24</span>
+                </div>
+                <div class="stat-value">
+                  <strong id="dashboardActiveAuditValue">24</strong>
+                  <span class="trend-chip" id="dashboardActiveAuditTrend">+4</span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-head">
+                  <span class="stat-label">Temuan</span>
+                  <span class="kpi-pill warning" id="dashboardFindingBadge">12</span>
+                </div>
+                <div class="stat-value">
+                  <strong id="dashboardFindingValue">12</strong>
+                  <span class="trend-chip" id="dashboardFindingTrend">3 prioritas</span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-head">
+                  <span class="stat-label">Completion</span>
+                  <span class="kpi-pill info" id="dashboardCompletionBadge">92%</span>
+                </div>
+                <div class="stat-value">
+                  <strong id="dashboardCompletionValue">92%</strong>
+                  <span class="trend-chip" id="dashboardCompletionTrend">on track</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="dashboard-grid">
+              <div class="panel premium-panel">
+                <div class="section-header">
+                  <h3>Performance by domain</h3>
+                  <span class="metric-pill">Current cycle</span>
+                </div>
+                <div class="mini-chart" aria-label="Domain performance chart">
+                  <div class="mini-bar-group">
+                    <label>Planning</label>
+                    <div class="mini-bar"><span style="width: 88%"></span></div>
+                  </div>
+                  <div class="mini-bar-group">
+                    <label>Recruitment</label>
+                    <div class="mini-bar"><span style="width: 76%"></span></div>
+                  </div>
+                  <div class="mini-bar-group">
+                    <label>Training</label>
+                    <div class="mini-bar"><span style="width: 67%"></span></div>
+                  </div>
+                  <div class="mini-bar-group">
+                    <label>Performance</label>
+                    <div class="mini-bar"><span style="width: 82%"></span></div>
+                  </div>
+                  <div class="mini-bar-group">
+                    <label>Comp &amp; Benefit</label>
+                    <div class="mini-bar"><span style="width: 91%"></span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel premium-panel">
+                <div class="section-header">
+                  <h3>Operational status</h3>
+                  <span class="metric-pill">Live</span>
+                </div>
+                <div class="status-stack">
+                  <div class="status-row">
+                    <span>Risk exposure</span>
+                    <strong class="risk-badge medium">Medium</strong>
+                  </div>
+                  <div class="status-row">
+                    <span>Remediation SLA</span>
+                    <strong class="risk-badge positive">14 days</strong>
+                  </div>
+                  <div class="status-row">
+                    <span>Audit coverage</span>
+                    <strong class="risk-badge positive">96%</strong>
+                  </div>
+                  <div class="status-row">
+                    <span>Decision latency</span>
+                    <strong class="risk-badge neutral">3.2 days</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="dashboard-grid lower-grid">
+              <div class="panel premium-panel">
+                <div class="section-header">
+                  <h3>Executive timeline</h3>
+                  <span class="metric-pill">This month</span>
+                </div>
+                <ul class="timeline-list">
+                  <li class="timeline-item">
+                    <span class="timeline-dot success"></span>
+                    <div>
+                      <strong>Review kebijakan HR</strong>
+                      <small>2 hari lalu</small>
+                    </div>
+                  </li>
+                  <li class="timeline-item">
+                    <span class="timeline-dot warn"></span>
+                    <div>
+                      <strong>Follow-up temuan rekrutmen</strong>
+                      <small>4 hari lalu</small>
+                    </div>
+                  </li>
+                  <li class="timeline-item">
+                    <span class="timeline-dot info"></span>
+                    <div>
+                      <strong>Validasi KPI dan target</strong>
+                      <small>6 hari lalu</small>
+                    </div>
+                  </li>
+                  <li class="timeline-item">
+                    <span class="timeline-dot neutral"></span>
+                    <div>
+                      <strong>Monitoring program pelatihan</strong>
+                      <small>8 hari lalu</small>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="panel premium-panel">
+                <div class="section-header">
+                  <h3>Portfolio-ready branding</h3>
+                  <span class="metric-pill">Brand</span>
+                </div>
+                <div class="branding-box">
+                  <div class="branding-line">
+                    <span class="brand-mini">Atlas</span>
+                    <strong>HR Assurance Suite</strong>
+                  </div>
+                  <p>Arsitektur dashboard yang terlihat matang untuk presentasi, proposal, dan demo enterprise tanpa mengorbankan fungsi operasional.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="section-header">
+                <h3>Role Matrix</h3>
+                <span class="metric-pill">Access</span>
+              </div>
+
+            <div class="panel">
+              <div class="section-header">
+                <h3>Role Matrix</h3>
+                <span class="metric-pill">Access</span>
+              </div>
+              <div class="table-wrap">
+                <table class="role-matrix">
+                  <thead>
+                    <tr>
+                      <th>Role</th>
+                      <th>Checklist</th>
+                      <th>Temuan</th>
+                      <th>Laporan</th>
+                      <th>Setting</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><span class="role-tag admin">Admin</span></td>
+                      <td>Full access</td>
+                      <td>Full access</td>
+                      <td>Full access</td>
+                      <td>Full access</td>
+                    </tr>
+                    <tr>
+                      <td><span class="role-tag auditor">Auditor</span></td>
+                      <td>Full access</td>
+                      <td>Full access</td>
+                      <td>Read only</td>
+                      <td>Read only</td>
+                    </tr>
+                    <tr>
+                      <td><span class="role-tag manager">Manager</span></td>
+                      <td>Read/Review</td>
+                      <td>Read/Review</td>
+                      <td>Read/Review</td>
+                      <td>Denied</td>
+                    </tr>
+                    <tr>
+                      <td><span class="role-tag viewer">Viewer</span></td>
+                      <td>Denied</td>
+                      <td>Denied</td>
+                      <td>Read only</td>
+                      <td>Denied</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <section class="page" id="checklist">
+            <div class="panel" style="margin-bottom: 18px;">
+              <div class="toolbar">
+                <div>
+                  <label for="searchChecklist">Cari indikator</label>
+                  <input id="searchChecklist" placeholder="Cari indikator..." oninput="renderChecklist()" />
+                </div>
+                <div>
+                  <label for="areaFilter">Area</label>
+                  <select id="areaFilter" onchange="renderChecklist()">
+                    <option value="">Semua Area</option>
+                    <option>Perencanaan SDM</option>
+                    <option>Rekrutmen</option>
+                    <option>Onboarding</option>
+                    <option>Pelatihan</option>
+                    <option>Kinerja</option>
+                    <option>Kompensasi</option>
+                    <option>Compliance</option>
+                  </select>
+                </div>
+                <div>
+                  <label>&nbsp;</label>
+                  <button class="btn primary" onclick="score()">Hitung Skor</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel" style="margin-bottom: 18px;">
+              <h3>Form Audit</h3>
+              <div class="form-grid">
+                <div>
+                  <label>Judul Audit</label>
+                  <input id="auditTitle" placeholder="Audit Rekrutmen 2026" />
+                </div>
+                <div>
+                  <label>Departemen</label>
+                  <input id="auditDepartment" placeholder="Human Resources" />
+                </div>
+                <div>
+                  <label>Status</label>
+                  <select id="auditStatus">
+                    <option value="draft">Draft</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Skor</label>
+                  <input id="auditScore" type="number" min="0" max="100" value="80" />
+                </div>
+                <div class="full">
+                  <button class="btn primary" onclick="saveAudit()">Simpan Audit</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="audit-list" id="auditList"></div>
+
+            <div class="panel" style="margin-top: 18px;">
+              <h3>Audit Tersimpan</h3>
+              <div class="table-wrap" style="margin-top: 12px;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Judul Audit</th>
+                      <th>Departemen</th>
+                      <th>Skor</th>
+                      <th>Status</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="savedAuditTableBody">
+                    <tr>
+                      <td colspan="5" style="text-align:center; color: var(--muted);">Belum ada audit tersimpan.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="panel" style="margin-top: 18px;" id="scoreOut">Belum dihitung.</div>
+          </section>
+
+          <section class="page" id="findings">
+            <div class="grid-3" style="margin-bottom: 18px;">
+              <div class="panel">
+                <small>Temuan Tinggi</small>
+                <h2 id="findingHighCount" style="color: var(--danger); margin: 8px 0;">0</h2>
+                <span style="color: var(--muted);">Prioritas segera</span>
+              </div>
+              <div class="panel">
+                <small>Temuan Sedang</small>
+                <h2 id="findingMediumCount" style="color: var(--warning); margin: 8px 0;">0</h2>
+                <span style="color: var(--muted);">Target ≤ 30 hari</span>
+              </div>
+              <div class="panel">
+                <small>Selesai</small>
+                <h2 id="findingClosedCount" style="color: var(--success); margin: 8px 0;">0</h2>
+                <span style="color: var(--muted);">Closed</span>
+              </div>
+            </div>
+
+            <div class="panel" style="margin-bottom: 18px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <h3 style="margin:0;">Daftar Temuan</h3>
+                <div style="display:flex; gap:10px; align-items:end; flex-wrap: wrap;">
+                  <div>
+                    <label for="findingStatusFilter" style="display:block; margin-bottom:4px;">Filter Status</label>
+                    <select id="findingStatusFilter" onchange="applyFindingStatusFilter()">
+                      <option value="">Semua status</option>
+                      <option value="open">Open</option>
+                      <option value="on_progress">On Progress</option>
+                      <option value="closed">Closed</option>
+                    </select>
+                  </div>
+                  <button class="btn ghost" onclick="toast('Export data berhasil.')">Export</button>
+                </div>
+              </div>
+              <div class="table-wrap" style="margin-top: 12px;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Audit</th>
+                      <th>Area</th>
+                      <th>Temuan</th>
+                      <th>Risiko</th>
+                      <th>PIC</th>
+                      <th>Status</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="findingTableBody">
+                    <tr>
+                      <td>F-001</td>
+                      <td>Audit Rekrutmen 2026</td>
+                      <td>Rekrutmen</td>
+                      <td>Dokumentasi interview belum seragam</td>
+                      <td><span class="status fail">Tinggi</span></td>
+                      <td>HR Manager</td>
+                      <td><span class="status warn">Open</span></td>
+                      <td><button class="btn ghost">Edit</button></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h3>Tambah Temuan</h3>
+              <div class="form-grid" style="margin-top: 12px;">
+                <div>
+                  <label>Audit Terkait</label>
+                  <select id="findingAuditId">
+                    <option value="">Pilih audit</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Area</label>
+                  <select id="findingArea">
+                    <option>Perencanaan SDM</option>
+                    <option>Rekrutmen</option>
+                    <option>Pelatihan</option>
+                    <option>Kinerja</option>
+                    <option>Kompensasi</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Risiko</label>
+                  <select id="findingRisk">
+                    <option value="high">Tinggi</option>
+                    <option value="medium">Sedang</option>
+                    <option value="low">Rendah</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Status</label>
+                  <select id="findingStatus">
+                    <option value="open">Open</option>
+                    <option value="on_progress">On Progress</option>
+                    <option value="closed">Closed</option>
+                  </select>
+                </div>
+                <div>
+                  <label>PIC</label>
+                  <input id="findingPic" placeholder="Nama / jabatan" />
+                </div>
+                <div>
+                  <label>Target</label>
+                  <input id="findingDate" type="date" />
+                </div>
+                <div class="full">
+                  <label>Deskripsi</label>
+                  <textarea id="findingDescription" placeholder="Deskripsi temuan..."></textarea>
+                </div>
+                <div class="full">
+                  <button class="btn primary" id="findingSubmitBtn" onclick="addFinding()">Tambah Temuan</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="page" id="reports">
+            <div class="hero" style="padding: 22px 24px; margin-bottom: 18px;">
+              <div>
+                <small>LAPORAN AUDIT SDM</small>
+                <h2 style="font-size: 2rem;">Laporan &amp; Rekomendasi Audit</h2>
+                <p>Generasi dan review laporan hasil audit kepatuhan SDM terkoneksi langsung dengan database.</p>
+              </div>
+              <div class="quick-actions">
+                <button class="btn btn-hero-secondary" onclick="loadBackendData()">↺ Refresh Data</button>
+                <button class="btn btn-hero-primary" onclick="window.print()">🖨 Cetak / Export PDF</button>
+              </div>
+            </div>
+
+            <!-- Form Laporan Audit -->
+            <div class="panel" style="margin-bottom: 18px;">
+              <div class="section-header">
+                <h3>Form Konfigurasi Laporan Audit</h3>
+                <span class="metric-pill">Data Generator</span>
+              </div>
+              <div class="form-grid" style="margin-top: 12px;">
+                <div>
+                  <label for="reportAuditSelect">Pilih Data Audit</label>
+                  <select id="reportAuditSelect" onchange="onReportAuditSelectChange()">
+                    <option value="">Pilih audit...</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="reportPeriod">Periode / Tanggal Laporan</label>
+                  <input id="reportPeriod" type="date" />
+                </div>
+                <div>
+                  <label for="reportDepartment">Departemen Target</label>
+                  <input id="reportDepartment" placeholder="Human Resources" />
+                </div>
+                <div>
+                  <label for="reportAuditorName">Lead Auditor / PIC Reviewer</label>
+                  <input id="reportAuditorName" placeholder="Nama Auditor..." />
+                </div>
+                <div class="full">
+                  <label for="reportExecutiveSummary">Ringkasan Eksekutif (Executive Summary)</label>
+                  <textarea id="reportExecutiveSummary" placeholder="Ringkasan evaluasi hasil audit SDM..."></textarea>
+                </div>
+                <div class="full">
+                  <label for="reportRecommendations">Rekomendasi Utama (1 rekomendasi per baris)</label>
+                  <textarea id="reportRecommendations" placeholder="1. Standarisasi SOP dan form interview&#10;2. Evaluasi efektivitas pelatihan secara berkala&#10;3. Rekonsiliasi berkas kepatuhan karyawan"></textarea>
+                </div>
+                <div class="full" style="display:flex; gap:10px; flex-wrap:wrap;">
+                  <button class="btn primary" onclick="applyReportCustomization()">📊 Terapkan ke Preview</button>
+                  <button class="btn secondary" onclick="saveReportToDatabase()">💾 Simpan Laporan ke Database</button>
+                  <button class="btn ghost" onclick="resetReportForm()">↺ Reset Form</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Header Info Laporan Terpilih -->
+            <div class="panel" style="margin-bottom: 18px; border-left: 4px solid var(--primary);">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                <div>
+                  <small style="color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Laporan Audit Terpilih</small>
+                  <h3 id="reportActiveTitle" style="margin:4px 0;">Audit Rekrutmen 2026</h3>
+                  <p id="reportActiveMeta" style="margin:0; color:var(--muted);">Departemen: <strong id="reportActiveDept">HR</strong> • Auditor: <strong id="reportActiveAuditor">Auditor SDM</strong> • Periode: <strong id="reportActiveDate">-</strong></p>
+                </div>
+                <div>
+                  <span class="status pass" id="reportActiveStatusBadge">Draft</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- KPI Cards Laporan Terkoneksi -->
+            <div class="stats-grid" style="margin-bottom: 18px;">
+              <div class="stat-card brand-stat">
+                <div class="stat-head">
+                  <span class="stat-label">Skor Kepatuhan</span>
+                  <span class="kpi-pill success" id="reportScorePill">Memadai</span>
+                </div>
+                <div class="stat-value">
+                  <strong id="reportScoreDisplay">78%</strong>
+                  <span class="trend-chip" id="reportScoreStatusText">Hasil Audit</span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-head">
+                  <span class="stat-label">Total Temuan</span>
+                  <span class="kpi-pill" id="reportTotalFindingsBadge">0</span>
+                </div>
+                <div class="stat-value">
+                  <strong id="reportTotalFindingsVal">0</strong>
+                  <span class="trend-chip">Semua Area</span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-head">
+                  <span class="stat-label">Temuan Kritis</span>
+                  <span class="kpi-pill warning" id="reportHighFindingsBadge">0</span>
+                </div>
+                <div class="stat-value">
+                  <strong id="reportHighFindingsVal" style="color:var(--danger);">0</strong>
+                  <span class="trend-chip">Risiko Tinggi</span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-head">
+                  <span class="stat-label">Terselesaikan</span>
+                  <span class="kpi-pill info" id="reportClosedFindingsBadge">0</span>
+                </div>
+                <div class="stat-value">
+                  <strong id="reportClosedFindingsVal" style="color:var(--success);">0</strong>
+                  <span class="trend-chip">Status Closed</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Executive Summary & Rekomendasi -->
+            <div class="grid-2">
+              <div class="panel">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:8px;">
+                  <h3 style="margin:0;">Executive Summary</h3>
+                  <span class="status pass" id="reportSummaryScoreBadge">78%</span>
+                </div>
+                <p id="reportSummaryContent" style="margin: 0; color: var(--muted); line-height: 1.7;">
+                  Pilih audit dari form di atas untuk melihat ringkasan eksekutif dan rekomendasi terkoneksi.
+                </p>
+              </div>
+
+              <div class="panel">
+                <h3>Rekomendasi Perbaikan</h3>
+                <ol id="reportRecommendationsList" style="padding-left: 18px; color: var(--muted); line-height: 1.8; margin: 0;">
+                  <li>Pilih data audit untuk memuat rekomendasi otomatis berdasarkan temuan riil.</li>
+                </ol>
+              </div>
+            </div>
+
+            <!-- Rencana Tindak Lanjut & Daftar Temuan Terkoneksi -->
+            <div class="panel" style="margin-top: 18px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+                <h3 style="margin:0;">Rencana Tindak Lanjut &amp; Temuan Terkoneksi</h3>
+                <span class="metric-pill" id="reportActionPlanCount">0 Temuan</span>
+              </div>
+              <div class="table-wrap" style="margin-top: 12px;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Area</th>
+                      <th>Temuan &amp; Tindak Lanjut</th>
+                      <th>Risiko</th>
+                      <th>PIC</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reportActionPlanBody">
+                    <tr>
+                      <td colspan="6" style="text-align:center; color: var(--muted);">Belum ada data temuan untuk audit yang dipilih.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Daftar Laporan Audit Tersimpan -->
+            <div class="panel" style="margin-top: 18px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+                <h3 style="margin:0;">Daftar Laporan Audit Tersimpan</h3>
+                <span class="metric-pill" id="savedReportCount">0 Laporan</span>
+              </div>
+              <div class="table-wrap" style="margin-top: 12px;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Judul Laporan</th>
+                      <th>Audit Terkait</th>
+                      <th>Departemen</th>
+                      <th>Auditor</th>
+                      <th>Skor</th>
+                      <th>Tanggal</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="savedReportTableBody">
+                    <tr>
+                      <td colspan="7" style="text-align:center; color: var(--muted);">Belum ada laporan tersimpan di database.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <section class="page" id="employees">
+            <div class="hero" style="padding: 22px 24px; margin-bottom: 18px;">
+              <div>
+                <small>DATA KARYAWAN</small>
+                <h2 style="font-size: 2rem;">Data Karyawan</h2>
+                <p>Informasi personel dan struktur peran HR yang terintegrasi.</p>
+              </div>
+              <div class="employee-hero-actions">
+                <button class="btn refresh-btn" onclick="refreshEmployeeList()">↻ Refresh</button>
+                <button class="btn secondary" onclick="exportEmployeeCsv()">⬇ Export CSV</button>
+                <button class="btn ghost" onclick="openResetEmployeeIdsModal()">↺ Reset ID Karyawan ke Awal</button>
+                <button class="btn danger" onclick="openClearEmployeeDataModal()">🧹 Hapus Semua Data Karyawan</button>
+              </div>
+            </div>
+
+            <div class="panel" style="margin-bottom: 18px;">
+              <div class="toolbar">
+                <div>
+                  <label for="employeeSearch">Cari</label>
+                  <input id="employeeSearch" placeholder="Cari nama/email/divisi..." oninput="renderEmployees()" />
+                </div>
+                <div>
+                  <label for="roleFilter">Role</label>
+                  <select id="roleFilter" onchange="renderEmployees()">
+                    <option value="">Semua Role</option>
+                    <option value="admin">Admin</option>
+                    <option value="auditor">Auditor</option>
+                    <option value="manager">Manager</option>
+                    <option value="viewer">Viewer</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="employeeSort">Urutkan</label>
+                  <select id="employeeSort" onchange="renderEmployees()">
+                    <option value="id-asc">ID: Terendah</option>
+                    <option value="id-desc">ID: Tertinggi</option>
+                    <option value="name-asc">Nama: A-Z</option>
+                    <option value="name-desc">Nama: Z-A</option>
+                    <option value="role-asc">Role: A-Z</option>
+                    <option value="division-asc">Divisi: A-Z</option>
+                  </select>
+                </div>
+                <div>
+                  <button class="btn ghost" type="button" onclick="document.getElementById('employeeSearch').value=''; document.getElementById('roleFilter').value=''; document.getElementById('employeeSort').value='id-asc'; renderEmployees();">Reset Filter</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel employee-form-panel" style="margin-bottom: 18px;">
+              <div class="section-header compact-header">
+                <h3 style="margin: 0;">Form Karyawan</h3>
+                <span id="employeeFormIdentity" class="metric-pill">ID baru otomatis</span>
+              </div>
+              <div class="employee-form-grid" style="margin-top: 12px;">
+                <div class="employee-form-field">
+                  <label>Nama</label>
+                  <input id="empName" placeholder="Nama lengkap" />
+                </div>
+                <div class="employee-form-field">
+                  <label>Email</label>
+                  <input id="empEmail" type="email" placeholder="email@perusahaan.com" />
+                </div>
+                <div class="employee-form-field">
+                  <label>Role</label>
+                  <select id="empRole">
+                    <option value="viewer">Viewer</option>
+                    <option value="manager">Manager</option>
+                    <option value="auditor">Auditor</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+                <div class="employee-form-field">
+                  <label>Divisi</label>
+                  <select id="empDivision">
+                    <option value="Umum">Umum</option>
+                    <option value="HR &amp; Administrasi">HR &amp; Administrasi</option>
+                    <option value="Keuangan">Keuangan</option>
+                    <option value="Operasional">Operasional</option>
+                    <option value="IT">IT</option>
+                    <option value="Sales &amp; Marketing">Sales &amp; Marketing</option>
+                    <option value="Quality Assurance">Quality Assurance</option>
+                  </select>
+                </div>
+                <div class="employee-form-field">
+                  <label>Password</label>
+                  <input id="empPassword" type="password" placeholder="Minimal 8 karakter" oninput="renderEmployeePasswordStrength()" />
+                  <small id="empPasswordStrength" style="display:block; margin-top:6px; color: var(--muted);">Password minimal 8 karakter dengan huruf besar, kecil, angka, dan simbol.</small>
+                </div>
+                <div class="employee-form-field employee-form-actions">
+                  <button class="btn primary" onclick="saveEmployee()">Simpan Karyawan</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel" style="margin-bottom: 18px;">
+              <div class="section-header" style="margin-bottom: 10px;">
+                <h3 style="margin: 0;">Detail Karyawan</h3>
+              </div>
+              <div id="employeeDetailPanel" class="employee-detail-panel">
+                <div class="employee-detail-empty">Pilih karyawan untuk melihat detail akses, status, dan identitas akun.</div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="table-wrap">
+                <table class="employee-table">
+                  <thead>
+                    <tr>
+                      <th class="employee-id-column">ID</th>
+                      <th>Nama</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Divisi</th>
+                      <th>Status</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="employeeTableBody"></tbody>
+                </table>
+              </div>
+              <div id="employeePagination" class="employee-pagination"></div>
+            </div>
+          </section>
+
+          <section class="page" id="settings">
+            <div class="hero" style="padding: 22px 24px; margin-bottom: 18px;">
+              <div>
+                <small>PENGATURAN</small>
+                <h2 style="font-size: 2rem;">Pengaturan</h2>
+                <p>Konfigurasi dasar aplikasi audit.</p>
+              </div>
+            </div>
+
+            <div class="panel" style="margin-bottom: 18px;">
+              <div class="form-grid">
+                <div>
+                  <label>Nama Organisasi</label>
+                  <input value="PT Serasi Mandiri" />
+                </div>
+                <div>
+                  <label>Periode Audit</label>
+                  <input value="Januari – Juni 2026" />
+                </div>
+                <div>
+                  <label>Auditor</label>
+                  <input value="Tim Audit Internal" />
+                </div>
+                <div>
+                  <label>Target Kepatuhan</label>
+                  <input value="75%" />
+                </div>
+                <div class="full">
+                  <label>Catatan</label>
+                  <textarea>Audit berdasarkan kebijakan internal, dokumen HR, sampling data, dan wawancara.</textarea>
+                </div>
+                <div class="full">
+                  <button class="btn primary" onclick="saveSettings()">Simpan Pengaturan</button>
+                </div>
+                <div class="full">
+                  <div class="danger-box">
+                    <div>
+                      <strong>Reset database aman</strong>
+                      <p>Hanya akun admin yang akan dipertahankan. Semua data non-admin akan dihapus.</p>
+                    </div>
+                    <button class="btn danger" onclick="openResetDatabaseModal()">⚠ Reset Database</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px;">
+                <h3 style="margin:0;">Audit Trail</h3>
+                <span class="status pass">Terproteksi</span>
+              </div>
+              <ul id="auditTrailList" style="padding-left: 18px; color: var(--muted); line-height: 1.8; margin: 0;">
+                <li>Admin login berhasil pada 2026-08-31 08:30</li>
+                <li>Audit checklist diupdate oleh Auditor</li>
+                <li>Temuan F-001 dipindah status menjadi Open</li>
+                <li>Backup dibuat otomatis pada 00:00</li>
+              </ul>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <div id="resetEmployeeIdsModal" class="modal-backdrop hidden" aria-hidden="true">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="resetEmployeeIdsTitle">
+        <div class="modal-header">
+          <h3 id="resetEmployeeIdsTitle">Reset ID Karyawan ke Awal</h3>
+          <button id="closeResetEmployeeIdsModalBtn" class="modal-close" type="button" aria-label="Tutup">×</button>
+        </div>
+        <div class="modal-body">
+          <p>Semua data karyawan non-admin akan dihapus, lalu urutan ID akan dimulai kembali dari awal. Akun admin tetap aman.</p>
+          <label for="resetEmployeeIdsConfirmInput">Ketik: <strong>reset employee ids</strong></label>
+          <input id="resetEmployeeIdsConfirmInput" type="text" placeholder="reset employee ids" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn secondary" type="button" onclick="closeResetEmployeeIdsModal()">Batal</button>
+          <button id="confirmResetEmployeeIdsBtn" class="btn ghost" type="button">Konfirmasi Reset ID</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="clearEmployeeDataModal" class="modal-backdrop hidden" aria-hidden="true">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="clearEmployeeDataTitle">
+        <div class="modal-header">
+          <h3 id="clearEmployeeDataTitle">Kosongkan Data Karyawan</h3>
+          <button id="closeClearEmployeeDataModalBtn" class="modal-close" type="button" aria-label="Tutup">×</button>
+        </div>
+        <div class="modal-body">
+          <p>Semua data karyawan non-admin akan dihapus. Admin tetap aman dan urutan ID akan disesuaikan ulang.</p>
+          <label for="clearEmployeeDataConfirmInput">Ketik: <strong>hapus semua data karyawan</strong></label>
+          <input id="clearEmployeeDataConfirmInput" type="text" placeholder="hapus semua data karyawan" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn secondary" type="button" onclick="closeClearEmployeeDataModal()">Batal</button>
+          <button id="confirmClearEmployeeDataBtn" class="btn danger" type="button">Konfirmasi Hapus</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="resetDatabaseModal" class="modal-backdrop hidden" aria-hidden="true">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="resetDatabaseTitle">
+        <div class="modal-header">
+          <h3 id="resetDatabaseTitle">Reset Database Aman</h3>
+          <button id="closeResetDatabaseModalBtn" class="modal-close" type="button" aria-label="Tutup">×</button>
+        </div>
+        <div class="modal-body">
+          <p>Reset database akan menghapus semua data non-admin dan mengembalikan urutan ID ke awal, dengan admin tetap dipertahankan.</p>
+          <label for="resetDatabaseConfirmInput">Ketik: <strong>reset database</strong></label>
+          <input id="resetDatabaseConfirmInput" type="text" placeholder="reset database" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn secondary" type="button" onclick="closeResetDatabaseModal()">Batal</button>
+          <button id="confirmResetDatabaseBtn" class="btn danger" type="button">Konfirmasi Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="resetPasswordModal" class="modal-backdrop hidden" aria-hidden="true">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="resetPasswordTitle">
+        <div class="modal-header">
+          <h3 id="resetPasswordTitle">Reset Password</h3>
+          <button id="closeResetPasswordModalBtn" class="modal-close" type="button" aria-label="Tutup">×</button>
+        </div>
+        <div class="modal-body">
+          <label for="resetPasswordInput">Password Baru</label>
+          <input id="resetPasswordInput" type="password" placeholder="Minimal 8 karakter, huruf besar, kecil, angka, simbol" />
+          <small>Gunakan password yang aman untuk melindungi akun karyawan.</small>
+        </div>
+        <div class="modal-actions">
+          <button class="btn secondary" type="button" onclick="closeResetPasswordModal()">Batal</button>
+          <button id="confirmResetPasswordBtn" class="btn primary" type="button">Simpan Password</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
