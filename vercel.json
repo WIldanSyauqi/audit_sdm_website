@@ -1,4 +1,16 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "express"
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["index.html", "auth-demo.html", "styles.css", "app.js"]
+      }
+    }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/server.js" },
+    { "src": "/(.*)", "dest": "/server.js" }
+  ]
 }

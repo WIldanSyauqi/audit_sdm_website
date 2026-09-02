@@ -109,11 +109,6 @@ function toPostgresSql(sql) {
   return sql.replace(/\?/g, () => `$${++index}`);
 }
 
-function toPostgresSql(sql) {
-  let index = 0;
-  return sql.replace(/\?/g, () => `$${++index}`);
-}
-
 function run(sql, params = []) {
   if (DB_CLIENT === 'postgres') {
     let postgresSql = sql;
@@ -406,7 +401,9 @@ async function initializeDatabase() {
   if (databaseInitPromise) return databaseInitPromise;
 
   databaseInitPromise = (async () => {
-    if (DB_CLIENT === 'postgres' && !pgClient) await connectDatabase();
+    if (!db && !pgClient) {
+      await connectDatabase();
+    }
 
     const tableDefinitions = TABLE_SQL[DB_CLIENT] || TABLE_SQL.sqlite;
     for (const statement of tableDefinitions) await run(statement);
