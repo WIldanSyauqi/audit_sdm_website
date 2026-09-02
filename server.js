@@ -354,7 +354,7 @@ async function ensureAdminUser() {
   const adminPasswordMatches = await bcrypt.compare(ADMIN_PASSWORD, adminExists.password_hash);
   if (!adminPasswordMatches) {
     const hash = await bcrypt.hash(ADMIN_PASSWORD, 10);
-    await run('UPDATE users SET password_hash = ?, role = ?, is_active = 1, division = ? WHERE email = ?', [hash, 'admin', 'Umum', ADMIN_EMAIL]);
+    await run('UPDATE users SET password_hash = ?, role = ?, is_active = ?, division = ? WHERE email = ?', [hash, 'admin', activeFlagValue(true), 'Umum', ADMIN_EMAIL]);
   }
 }
 
@@ -394,43 +394,69 @@ async function ensureUserSchemaColumns() {
 }
 
 async function reindexUserIds() {
-  if (DB_CLIENT !== 'sqlite') return;
+  if (DB_CLIENT === 'sqlite') {
+    const remainingEmployees = await all(
+      'SELECT * FROM users WHERE email != ? ORDER BY id ASC',
+      [ADMIN_EMAIL]
+    );
+
+    if (!remainingEmployees.length) {
+      await run('DELETE FROM sqlite_sequence WHERE name = ?', ['users']);
+      return;
+    }
+
+    const hasGaps = remainingEmployees.some((user, index) => Number(user.id) !== index + 2);
+    if (!hasGaps) {
+      await run('DELETE FROM sqlite_sequence WHERE name = ?', ['users']);
+      return;
+    }
+
+    const rowsToReinsert = remainingEmployees.map((user) => ({
+      ...user,
+      created_at: user.created_at || new Date().toISOString(),
+      updated_at: user.updated_at || user.created_at || new Date().toISOString(),
+      division: user.division || 'Umum',
+      is_active: user.is_active === 1 || user.is_active === true ? 1 : 0
+    }));
+
+    await run('DELETE FROM users WHERE email != ?', [ADMIN_EMAIL]);
+
+    for (let index = 0; index < rowsToReinsert.length; index += 1) {
+      const user = rowsToReinsert[index];
+      await run(
+        'INSERT INTO users (id, name, email, password_hash, role, is_active, division, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [index + 2, user.name, user.email, user.password_hash, user.role, user.is_active, user.division, user.created_at, user.updated_at]
+      );
+    }
+
+    await run('DELETE FROM sqlite_sequence WHERE name = ?', ['users']);
+    return;
+  }
 
   const remainingEmployees = await all(
-    'SELECT * FROM users WHERE email != ? ORDER BY id ASC',
+    'SELECT id, name, email, password_hash, role, is_active, division, created_at, updated_at FROM users WHERE email != ? ORDER BY id ASC',
     [ADMIN_EMAIL]
   );
 
   if (!remainingEmployees.length) {
-    await run('DELETE FROM sqlite_sequence WHERE name = ?', ['users']);
+    await run("SELECT setval(pg_get_serial_sequence('users', 'id'), 1, false)");
     return;
   }
 
-  const hasGaps = remainingEmployees.some((user, index) => Number(user.id) !== index + 2);
-  if (!hasGaps) {
-    await run('DELETE FROM sqlite_sequence WHERE name = ?', ['users']);
-    return;
-  }
-
-  const rowsToReinsert = remainingEmployees.map((user) => ({
+  const rowsToReindex = remainingEmployees.map((user, index) => ({
     ...user,
-    created_at: user.created_at || new Date().toISOString(),
-    updated_at: user.updated_at || user.created_at || new Date().toISOString(),
-    division: user.division || 'Umum',
-    is_active: user.is_active === 1 || user.is_active === true ? 1 : 0
+    newId: index + 2,
+    is_active: normalizeBooleanValue(user.is_active)
   }));
 
-  await run('DELETE FROM users WHERE email != ?', [ADMIN_EMAIL]);
-
-  for (let index = 0; index < rowsToReinsert.length; index += 1) {
-    const user = rowsToReinsert[index];
+  for (const user of rowsToReindex) {
     await run(
-      'INSERT INTO users (id, name, email, password_hash, role, is_active, division, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [index + 2, user.name, user.email, user.password_hash, user.role, user.is_active, user.division, user.created_at, user.updated_at]
+      'UPDATE users SET id = ?, name = ?, email = ?, password_hash = ?, role = ?, is_active = ?, division = ?, created_at = ?, updated_at = ? WHERE id = ?',
+      [user.newId, user.name, user.email, user.password_hash, user.role, activeFlagValue(user.is_active), user.division || 'Umum', user.created_at || new Date().toISOString(), user.updated_at || user.created_at || new Date().toISOString(), user.id]
     );
   }
 
-  await run('DELETE FROM sqlite_sequence WHERE name = ?', ['users']);
+  await run("SELECT setval(pg_get_serial_sequence('users', 'id'), COALESCE((SELECT MAX(id) FROM users), 1), true)");
 }
 
 async function getNextEmployeeId() {
