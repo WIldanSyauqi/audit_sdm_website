@@ -1,16 +1,16 @@
-# Panduan Login Demo
+# Panduan Login
 
-Akun demo yang tersedia:
+Akun yang tersedia:
 
 - Admin: admin@audit.local / admin123
 - Auditor: auditor@audit.local / auditor123
 - Manager: manager@audit.local / manager123
 - Viewer: viewer@audit.local / viewer123
 
-Untuk membuka halaman login demo:
+Untuk membuka halaman login:
 
 - Buka file `index.html` di browser
-- Atau buka file `auth-demo.html` untuk halaman login dedicated
+- Atau buka file `auth-demo.html` untuk halaman login dedicated yang tetap dapat dipakai sebagai alternatif
 
 Role access:
 

@@ -37,24 +37,9 @@ The project has been deployed to Vercel successfully, but the live deployment is
 Production URL:
 - https://auditsdmwebsite-oakrcv1b4-hotaru-id.vercel.app
 
-## Public demo mode
+## Production access
 
-For portfolio or public demo use, the app supports a safe public mode through the `PUBLIC_DEMO` environment variable.
-
-When enabled:
-
-```env
-PUBLIC_DEMO=true
-```
-
-The app keeps normal read-only viewing and login flows available, while blocking destructive admin actions such as:
-
-- database reset
-- employee deletion
-- password reset for users
-- backup restore
-
-This is the recommended configuration for public portfolio deployment because it keeps the app accessible without exposing dangerous admin operations.
+This application is intended for full internal access and does not include a public-only demo lockout. Admin actions remain available in the production environment when the proper credentials and environment variables are configured.
 
 ## Final portfolio submission summary
 
@@ -84,7 +69,6 @@ PORT=3000
 JWT_SECRET=change-this-secret-key
 NODE_ENV=development
 DB_CLIENT=sqlite
-PUBLIC_DEMO=true
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/audit_sdm
 ```
 
