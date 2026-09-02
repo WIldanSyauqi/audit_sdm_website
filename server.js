@@ -16,6 +16,7 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 const DB_PATH = path.join(__dirname, 'database.sqlite');
 const DB_CLIENT = (process.env.DB_CLIENT || (process.env.DATABASE_URL ? 'postgres' : 'sqlite')).toLowerCase();
+const PORTFOLIO_VIEW_ONLY = process.env.PORTFOLIO_VIEW_ONLY === 'true';
 const ADMIN_EMAIL = 'admin@audit.local';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 const DEFAULT_ROLE_USERS = [
@@ -41,6 +42,33 @@ app.use((req, res, next) => {
   return next();
 });
 app.use(express.static(__dirname, { index: false, dotfiles: 'deny' }));
+
+app.use((req, res, next) => {
+  const destructiveMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+  const destructivePaths = [
+    '/api/admin/',
+    '/api/backup/create',
+    '/api/backup/restore',
+    '/api/users',
+    '/api/reports',
+    '/api/audits',
+    '/api/findings'
+  ];
+
+  const isDestructiveMutation = destructiveMethods.has(req.method) && destructivePaths.some((path) => {
+    if (path === '/api/users') return req.path.startsWith('/api/users');
+    if (path === '/api/reports') return req.path.startsWith('/api/reports');
+    if (path === '/api/audits') return req.path.startsWith('/api/audits');
+    if (path === '/api/findings') return req.path.startsWith('/api/findings');
+    return req.path.startsWith(path);
+  });
+
+  if (PORTFOLIO_VIEW_ONLY && isDestructiveMutation) {
+    return res.status(403).json({ error: 'Portfolio view only: this action is disabled in read-only mode.' });
+  }
+
+  return next();
+});
 
 app.use(async (req, res, next) => {
   try {
@@ -393,6 +421,15 @@ async function reindexUserIds() {
   }
 
   await run('DELETE FROM sqlite_sequence WHERE name = ?', ['users']);
+}
+
+async function getNextEmployeeId() {
+  if (DB_CLIENT !== 'sqlite') {
+    return null;
+  }
+
+  const currentMax = await get('SELECT COALESCE(MAX(id), 1) AS max_id FROM users WHERE email != ?', [ADMIN_EMAIL]);
+  return Number(currentMax?.max_id || 1) + 1;
 }
 
 async function resetSqliteSequence(tableName) {
@@ -806,13 +843,22 @@ app.post('/api/users', authMiddleware, requireRole('admin'), async (req, res) =>
   }
 
   const hash = await bcrypt.hash(password, 10);
+  const nextId = DB_CLIENT === 'sqlite' ? await getNextEmployeeId() : null;
   const result = await run(
-    'INSERT INTO users (name, email, password_hash, role, division) VALUES (?, ?, ?, ?, ?)',
-    [name.trim(), normalizedEmail, hash, role, normalizedDivision]
+    DB_CLIENT === 'sqlite'
+      ? 'INSERT INTO users (id, name, email, password_hash, role, division) VALUES (?, ?, ?, ?, ?, ?)'
+      : 'INSERT INTO users (name, email, password_hash, role, division) VALUES (?, ?, ?, ?, ?)',
+    DB_CLIENT === 'sqlite'
+      ? [nextId, name.trim(), normalizedEmail, hash, role, normalizedDivision]
+      : [name.trim(), normalizedEmail, hash, role, normalizedDivision]
   );
 
+  if (DB_CLIENT === 'sqlite') {
+    await reindexUserIds();
+  }
+
   await logAudit(req.user.id, 'create', 'user', `Created user ${normalizedEmail}`);
-  return res.status(201).json({ id: result.id, message: 'User created' });
+  return res.status(201).json({ id: result.id || nextId, message: 'User created' });
 });
 
 app.put('/api/users/:id', authMiddleware, requireRole('admin'), async (req, res) => {
