@@ -607,6 +607,27 @@ async function apiRequest(path, options = {}) {
   throw lastError || new Error('Request failed');
 }
 
+async function loginAsPortfolioRole(role) {
+  const normalizedRole = String(role || '').trim().toLowerCase();
+  if (!['admin', 'auditor', 'manager', 'viewer'].includes(normalizedRole)) {
+    toast('Role demo tidak valid.');
+    return;
+  }
+
+  try {
+    const data = await apiRequest('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ role: normalizedRole, email: `${normalizedRole}@portfolio.local`, password: 'portfolio-demo' })
+    });
+    localStorage.setItem('hrAuditSession', JSON.stringify({ email: data.user.email, role: data.user.role, name: data.user.name, token: data.token }));
+    renderAuthState();
+    toast(`Login demo berhasil sebagai ${normalizedRole}.`);
+    await loadBackendData();
+  } catch (err) {
+    toast(err.message || 'Login demo gagal.');
+  }
+}
+
 async function login() {
   const emailEl = document.getElementById('loginEmail');
   const passwordEl = document.getElementById('loginPassword');
@@ -1572,6 +1593,10 @@ document.getElementById('menuToggle')?.addEventListener('click', () => {
 document.getElementById('themeToggle')?.addEventListener('click', () => {
   const currentTheme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
   applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+});
+
+document.querySelectorAll('.demo-role-btn').forEach((button) => {
+  button.addEventListener('click', () => loginAsPortfolioRole(button.dataset.demoRole));
 });
 
 document.getElementById('confirmResetPasswordBtn')?.addEventListener('click', confirmResetPassword);

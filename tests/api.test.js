@@ -418,6 +418,26 @@ test('PORTFOLIO_VIEW_ONLY blocks destructive admin endpoints', async () => {
   await request(resetApp).get('/api/health');
 });
 
+test('PORTFOLIO demo mode allows role-based access without real credentials', async () => {
+  process.env.PORTFOLIO_DEMO_MODE = 'true';
+  delete require.cache[require.resolve('../server.js')];
+  const { app: demoApp } = require('../server.js');
+
+  for (const role of ['admin', 'auditor', 'manager', 'viewer']) {
+    const res = await request(demoApp)
+      .post('/api/auth/login')
+      .send({ role, email: `${role}@portfolio.local`, password: 'portfolio-demo' });
+
+    assert.equal(res.status, 200, `${role} demo login should work`);
+    assert.equal(res.body.user.role, role, `${role} role should be accepted`);
+    assert.ok(res.body.token, `${role} should get a demo token`);
+  }
+
+  delete process.env.PORTFOLIO_DEMO_MODE;
+  delete require.cache[require.resolve('../server.js')];
+  require('../server.js');
+});
+
 test('DB_CLIENT prefers PostgreSQL when DATABASE_URL is available', async () => {
   process.env.DATABASE_URL = 'postgresql://postgres:postgres@localhost:5432/audit_sdm';
   delete require.cache[require.resolve('../server.js')];

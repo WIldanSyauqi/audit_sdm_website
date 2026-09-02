@@ -1455,6 +1455,29 @@ textarea {
   margin-bottom: 18px;
 }
 
+.demo-role-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 10px 0 18px;
+}
+
+.demo-role-btn {
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  background: rgba(79, 70, 229, 0.07);
+  color: var(--primary);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.demo-role-btn:hover {
+  background: rgba(79, 70, 229, 0.12);
+  transform: translateY(-1px);
+}
+
 .pill {
   border-radius: 999px;
   background: rgba(79, 70, 229, 0.08);
@@ -1578,5 +1601,148 @@ textarea {
   .header-actions,
   .topbar-actions {
     gap: 8px;
+  }
+}
+
+@media (max-width: 640px) {
+  .content {
+    padding: 12px;
+  }
+
+  .topbar {
+    min-height: 60px;
+    padding: 0 12px;
+  }
+
+  .page-title {
+    font-size: 1rem;
+  }
+
+  .hero {
+    padding: 18px 16px;
+    border-radius: 18px;
+  }
+
+  .hero h2 {
+    font-size: 1.5rem;
+  }
+
+  .hero p {
+    font-size: 0.92rem;
+  }
+
+  .quick-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .quick-actions .btn,
+  .btn-hero-primary,
+  .btn-hero-secondary {
+    width: 100%;
+  }
+
+  .employee-hero-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .employee-hero-actions .btn {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .employee-form-grid,
+  .employee-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .employee-action-group {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .employee-action-btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .employee-table {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .employee-table thead {
+    display: none;
+  }
+
+  .employee-table tbody,
+  .employee-table tr,
+  .employee-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .employee-table tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .employee-table tbody tr {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 12px 14px;
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.02);
+  }
+
+  .employee-table tbody td {
+    border: none;
+    padding: 6px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.95rem;
+  }
+
+  .employee-table tbody td:last-child {
+    padding-top: 10px;
+  }
+
+  .employee-id-column,
+  .employee-id-cell {
+    width: auto;
+  }
+
+  .employee-pagination-inner {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .user-card {
+    position: static;
+    margin: 16px 12px 12px;
+  }
+
+  .login-box {
+    border-radius: 18px;
+  }
+
+  .login-brand h2 {
+    font-size: 1.7rem;
+  }
+
+  .login-form-header h3 {
+    font-size: 1.3rem;
+  }
+
+  .modal {
+    width: calc(100vw - 24px);
   }
 }
