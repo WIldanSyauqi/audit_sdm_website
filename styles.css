@@ -42,6 +42,7 @@ html, body {
   font-family: Inter, "Segoe UI", Arial, sans-serif;
   background: radial-gradient(circle at top left, rgba(79, 70, 229, 0.08), transparent 35%), var(--bg);
   color: var(--text);
+  overflow-x: hidden;
 }
 
 body {
@@ -1350,6 +1351,7 @@ textarea {
   grid-template-columns: 1.2fr 1fr;
   width: min(920px, 92vw);
   min-height: 560px;
+  max-height: calc(100vh - 40px);
   background: rgba(255, 255, 255, 0.76);
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 28px;
@@ -1588,14 +1590,26 @@ textarea {
     min-width: initial;
   }
 
+  .login-overlay {
+    padding: 12px;
+    align-items: flex-start;
+  }
+
   .login-box {
     grid-template-columns: 1fr;
+    width: min(100%, 560px);
     min-height: auto;
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
   }
 
   .login-brand,
   .login-form {
     padding: 24px 20px;
+  }
+
+  .login-brand h2 {
+    font-size: clamp(1.8rem, 5vw, 2.7rem);
   }
 
   .header-actions,
@@ -1629,6 +1643,47 @@ textarea {
 
   .hero p {
     font-size: 0.92rem;
+  }
+
+  .login-overlay {
+    padding: 12px;
+  }
+
+  .login-box {
+    border-radius: 18px;
+    width: min(100%, 420px);
+    max-height: calc(100vh - 24px);
+  }
+
+  .login-brand {
+    padding: 22px 18px;
+  }
+
+  .login-form {
+    padding: 22px 18px;
+  }
+
+  .login-brand h2 {
+    font-size: 2rem;
+    margin-top: 16px;
+  }
+
+  .login-brand p {
+    font-size: 0.94rem;
+  }
+
+  .login-form-header h3 {
+    font-size: 1.5rem;
+  }
+
+  .demo-role-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .login-grid input,
+  .login-grid button,
+  .demo-role-btn {
+    min-height: 46px;
   }
 
   .quick-actions {
