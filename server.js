@@ -67,6 +67,21 @@ function getSqliteDriver() {
   return sqlite3;
 }
 
+function normalizeBooleanValue(value) {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (['true', '1', 'yes', 'y'].includes(normalized)) return true;
+    if (['false', '0', 'no', 'n'].includes(normalized)) return false;
+  }
+  return Boolean(value);
+}
+
+function activeFlagValue(value) {
+  const normalized = normalizeBooleanValue(value);
+  return DB_CLIENT === 'postgres' ? normalized : normalized ? 1 : 0;
+}
+
 async function connectDatabase() {
   if (DB_CLIENT === 'postgres') {
     pgClient = new Client({
@@ -293,7 +308,7 @@ async function ensureAdminUser() {
     const hash = await bcrypt.hash(ADMIN_PASSWORD, 10);
     await run(
       'INSERT INTO users (name, email, password_hash, role, is_active, division) VALUES (?, ?, ?, ?, ?, ?)',
-      ['System Administrator', ADMIN_EMAIL, hash, 'admin', 1, 'Umum']
+      ['System Administrator', ADMIN_EMAIL, hash, 'admin', activeFlagValue(true), 'Umum']
     );
     return;
   }
@@ -313,16 +328,16 @@ async function ensureDemoRoleUsers() {
     if (!existingUser) {
       await run(
         'INSERT INTO users (name, email, password_hash, role, is_active, division) VALUES (?, ?, ?, ?, ?, ?)',
-        [user.name, user.email, hash, user.role, 1, 'Umum']
+        [user.name, user.email, hash, user.role, activeFlagValue(true), 'Umum']
       );
       continue;
     }
 
     const passwordMatches = await bcrypt.compare(user.password, existingUser.password_hash);
-    if (!passwordMatches || existingUser.role !== user.role || existingUser.is_active !== 1) {
+    if (!passwordMatches || existingUser.role !== user.role || !normalizeBooleanValue(existingUser.is_active)) {
       await run(
-        'UPDATE users SET name = ?, password_hash = ?, role = ?, is_active = 1, division = ? WHERE email = ?',
-        [user.name, hash, user.role, 'Umum', user.email]
+        'UPDATE users SET name = ?, password_hash = ?, role = ?, is_active = ?, division = ? WHERE email = ?',
+        [user.name, hash, user.role, activeFlagValue(true), 'Umum', user.email]
       );
     }
   }
@@ -469,7 +484,7 @@ app.post('/api/auth/login', async (req, res) => {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
-  if (user.is_active !== 1 && user.is_active !== true) {
+  if (!normalizeBooleanValue(user.is_active)) {
     return res.status(403).json({ error: 'User is inactive' });
   }
 
@@ -773,7 +788,7 @@ app.get('/api/users/:id', authMiddleware, requireRole('admin'), async (req, res)
 
   return res.json({
     ...user,
-    is_active: Boolean(user.is_active === 1 || user.is_active === true)
+    is_active: normalizeBooleanValue(user.is_active)
   });
 });
 
@@ -819,7 +834,7 @@ app.put('/api/users/:id', authMiddleware, requireRole('admin'), async (req, res)
 
   await run(
     'UPDATE users SET name = ?, email = ?, role = ?, division = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-    [name.trim(), normalizedEmail, role, normalizedDivision, is_active, req.params.id]
+    [name.trim(), normalizedEmail, role, normalizedDivision, activeFlagValue(is_active), req.params.id]
   );
   await logAudit(req.user.id, 'update', 'user', `Updated user ${req.params.id}`);
   return res.json({ message: 'User updated' });
