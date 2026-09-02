@@ -12,23 +12,36 @@ const { Client } = require('pg');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 const DB_PATH = path.join(__dirname, 'database.sqlite');
 const DB_CLIENT = (process.env.DB_CLIENT || (process.env.DATABASE_URL ? 'postgres' : 'sqlite')).toLowerCase();
 const PUBLIC_DEMO = process.env.PUBLIC_DEMO === 'true';
 const ADMIN_EMAIL = 'admin@audit.local';
-const ADMIN_PASSWORD = 'admin123';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 const DEFAULT_ROLE_USERS = [
-  { name: 'Auditor SDM', email: 'auditor@audit.local', password: 'auditor123', role: 'auditor' },
-  { name: 'Manager HR', email: 'manager@audit.local', password: 'manager123', role: 'manager' },
-  { name: 'Viewer Audit', email: 'viewer@audit.local', password: 'viewer123', role: 'viewer' }
+  { name: 'Auditor SDM', email: 'auditor@audit.local', password: process.env.AUDITOR_PASSWORD || 'auditor123', role: 'auditor' },
+  { name: 'Manager HR', email: 'manager@audit.local', password: process.env.MANAGER_PASSWORD || 'manager123', role: 'manager' },
+  { name: 'Viewer Audit', email: 'viewer@audit.local', password: process.env.VIEWER_PASSWORD || 'viewer123', role: 'viewer' }
 ];
 const VALID_ROLES = ['admin', 'auditor', 'manager', 'viewer'];
 const BACKUP_DIR = path.join(__dirname, 'backups');
 
+if (NODE_ENV === 'production') {
+  if (JWT_SECRET === 'dev-secret-change-me') throw new Error('JWT_SECRET must be set in production.');
+  if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL must be set in production.');
+  if (DB_CLIENT !== 'postgres') throw new Error('DB_CLIENT must be postgres in production.');
+  if (ADMIN_PASSWORD === 'admin123') throw new Error('ADMIN_PASSWORD must be changed in production.');
+}
+
 app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname));
+const BLOCKED_STATIC_PATHS = new Set(['/server.js', '/package.json', '/package-lock.json', '/vercel.json', '/database.sqlite', '/.env']);
+app.use((req, res, next) => {
+  if (BLOCKED_STATIC_PATHS.has(req.path) || req.path.startsWith('/backups/') || req.path.startsWith('/.git/')) return res.status(404).end();
+  return next();
+});
+app.use(express.static(__dirname, { index: false, dotfiles: 'deny' }));
 
 app.use((req, res, next) => {
   const isProtectedAdminRoute = req.path.startsWith('/api/admin/') || req.path.startsWith('/api/backup/restore') || req.path.startsWith('/api/users/') && req.method === 'DELETE' || req.path.startsWith('/api/users/') && req.method === 'POST' && req.path.includes('/reset-password');
@@ -41,19 +54,22 @@ app.use((req, res, next) => {
 });
 
 app.use(async (req, res, next) => {
-  if (!dbReady) {
-    try {
-      await initializeDatabase();
-    } catch (err) {
-      console.error('Database init error:', err.message);
-    }
+  try {
+    if (!dbReady) await initializeDatabase();
+    return next();
+  } catch (err) {
+    console.error('Database init error:', err);
+    return res.status(503).json({
+      error: 'Database unavailable',
+      message: NODE_ENV === 'production' ? 'Check DATABASE_URL and DB_CLIENT environment variables.' : err.message
+    });
   }
-  next();
 });
 
 let db;
 let pgClient = null;
 let dbReady = false;
+let databaseInitPromise = null;
 
 function getSqliteDriver() {
   if (!sqlite3) {
@@ -66,7 +82,7 @@ async function connectDatabase() {
   if (DB_CLIENT === 'postgres') {
     pgClient = new Client({
       connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+      ssl: NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
     });
 
     try {
@@ -87,13 +103,25 @@ async function connectDatabase() {
   });
 }
 
-connectDatabase().catch((err) => {
-  console.error('Initial database connection failed:', err.message);
-});
+
+function toPostgresSql(sql) {
+  let index = 0;
+  return sql.replace(/\?/g, () => `$${++index}`);
+}
+
+function toPostgresSql(sql) {
+  let index = 0;
+  return sql.replace(/\?/g, () => `$${++index}`);
+}
 
 function run(sql, params = []) {
   if (DB_CLIENT === 'postgres') {
-    return pgClient.query(sql, params).then((result) => ({
+    let postgresSql = sql;
+    if (/^\s*INSERT\s/i.test(postgresSql) && !/\bRETURNING\b/i.test(postgresSql)) {
+      postgresSql = postgresSql.replace(/;\s*$/, '') + ' RETURNING id';
+    }
+
+    return pgClient.query(toPostgresSql(postgresSql), params).then((result) => ({
       id: result.rows[0] && result.rows[0].id ? result.rows[0].id : result.rowCount,
       changes: result.rowCount || 0,
       rows: result.rows
@@ -114,7 +142,7 @@ function run(sql, params = []) {
 
 function all(sql, params = []) {
   if (DB_CLIENT === 'postgres') {
-    return pgClient.query(sql, params).then((result) => result.rows);
+    return pgClient.query(toPostgresSql(sql), params).then((result) => result.rows);
   }
 
   const SqliteDriver = getSqliteDriver();
@@ -132,7 +160,7 @@ function all(sql, params = []) {
 
 function get(sql, params = []) {
   if (DB_CLIENT === 'postgres') {
-    return pgClient.query(sql, params).then((result) => result.rows[0] || null);
+    return pgClient.query(toPostgresSql(sql), params).then((result) => result.rows[0] || null);
   }
 
   const SqliteDriver = getSqliteDriver();
@@ -375,21 +403,27 @@ async function resetSqliteSequence(tableName) {
 
 async function initializeDatabase() {
   if (dbReady) return;
+  if (databaseInitPromise) return databaseInitPromise;
 
-  if (DB_CLIENT === 'postgres' && (!pgClient || !pgClient._connected)) {
-    await connectDatabase();
+  databaseInitPromise = (async () => {
+    if (DB_CLIENT === 'postgres' && !pgClient) await connectDatabase();
+
+    const tableDefinitions = TABLE_SQL[DB_CLIENT] || TABLE_SQL.sqlite;
+    for (const statement of tableDefinitions) await run(statement);
+
+    await ensureUserSchemaColumns();
+    await ensureAdminUser();
+    await ensureDemoRoleUsers();
+    await reindexUserIds();
+    dbReady = true;
+  })();
+
+  try {
+    await databaseInitPromise;
+  } catch (err) {
+    databaseInitPromise = null;
+    throw err;
   }
-
-  const tableDefinitions = TABLE_SQL[DB_CLIENT] || TABLE_SQL.sqlite;
-  for (const statement of tableDefinitions) {
-    await run(statement);
-  }
-
-  await ensureUserSchemaColumns();
-  await ensureAdminUser();
-  await ensureDemoRoleUsers();
-  await reindexUserIds();
-  dbReady = true;
 }
 
 async function logAudit(userId, action, entity, details = '') {
@@ -723,11 +757,11 @@ app.post('/api/admin/reset-employee-ids', authMiddleware, requireRole('admin'), 
 
 app.get('/api/users', authMiddleware, requireRole('admin'), async (req, res) => {
   const { search = '', role = '' } = req.query;
-  let query = 'SELECT id, name, email, role, COALESCE(division, "Umum") AS division, is_active, created_at FROM users WHERE 1=1';
+  let query = "SELECT id, name, email, role, COALESCE(division, 'Umum') AS division, is_active, created_at FROM users WHERE 1=1";
   const params = [];
 
   if (search) {
-    query += ' AND (name LIKE ? OR email LIKE ? OR COALESCE(division, "Umum") LIKE ?)';
+    query += " AND (name LIKE ? OR email LIKE ? OR COALESCE(division, 'Umum') LIKE ?)";
     params.push(`%${search}%`, `%${search}%`, `%${search}%`);
   }
 
@@ -743,7 +777,7 @@ app.get('/api/users', authMiddleware, requireRole('admin'), async (req, res) => 
 
 app.get('/api/users/:id', authMiddleware, requireRole('admin'), async (req, res) => {
   const user = await get(
-    'SELECT id, name, email, role, COALESCE(division, "Umum") AS division, is_active, created_at, updated_at FROM users WHERE id = ?',
+    "SELECT id, name, email, role, COALESCE(division, 'Umum') AS division, is_active, created_at, updated_at FROM users WHERE id = ?",
     [req.params.id]
   );
 
