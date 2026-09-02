@@ -29,10 +29,12 @@ const VALID_ROLES = ['admin', 'auditor', 'manager', 'viewer'];
 const BACKUP_DIR = path.join(__dirname, 'backups');
 
 if (NODE_ENV === 'production') {
-  if (JWT_SECRET === 'dev-secret-change-me') throw new Error('JWT_SECRET must be set in production.');
-  if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL must be set in production.');
-  if (DB_CLIENT !== 'postgres') throw new Error('DB_CLIENT must be postgres in production.');
-  if (ADMIN_PASSWORD === 'admin123') throw new Error('ADMIN_PASSWORD must be changed in production.');
+  const allowDemoDefaults = PORTFOLIO_DEMO_MODE === true;
+
+  if (!allowDemoDefaults && JWT_SECRET === 'dev-secret-change-me') throw new Error('JWT_SECRET must be set in production.');
+  if (!allowDemoDefaults && !process.env.DATABASE_URL) throw new Error('DATABASE_URL must be set in production.');
+  if (!allowDemoDefaults && DB_CLIENT !== 'postgres') throw new Error('DB_CLIENT must be postgres in production.');
+  if (!allowDemoDefaults && ADMIN_PASSWORD === 'admin123') throw new Error('ADMIN_PASSWORD must be changed in production.');
 }
 
 app.use(cors());
